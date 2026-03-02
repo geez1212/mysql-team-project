@@ -64,7 +64,7 @@ CREATE TABLE Membership(
     Created_By VARCHAR(30),
     Created_At DATE,
     Updated_By VARCHAR(30),
-    Updated_AT DATE
+    Updated_AT DATE,
     CHECK (Date_Exited IS NULL OR Date_Exited >= Date_Joined)
 );
 
@@ -89,6 +89,9 @@ CREATE TABLE Employee (
     Updated_By VARCHAR(30),
     Updated_AT DATE,
 
+    CHECK ((Hourly_Pay IS NOT NULL AND Salary IS NULL)
+    OR (Hourly_Pay IS NULL AND Salary IS NOT NULL)),
+
     CONSTRAINT fk_Employee_Supervisor
     FOREIGN KEY (Supervisor_ID) REFERENCES Employee(Employee_ID)
     ON DELETE SET NULL,
@@ -100,9 +103,9 @@ CREATE TABLE Employee (
 
 -- @Block
 CREATE TABLE ARTWORK(
-    artwork_ID INT PRIMARY KEY NOT NULL,
-    title VARCHAR(30) NOT NULL,
-    type VARCHAR(30) NOT NULL,
+    Artwork_ID INT PRIMARY KEY NOT NULL,
+    Title VARCHAR(30) NOT NULL,
+    Type VARCHAR(30) NOT NULL,
     Date_Created DATE,
     Time_Period VARCHAR(30),
     Art_Style VARCHAR(30),
@@ -114,6 +117,7 @@ CREATE TABLE ARTWORK(
     
     CONSTRAINT fk_Artwork_Artist
     FOREIGN KEY (Artist_ID) REFERENCES Artist(Artist_ID)
+    ON DELETE CASCADE
 );
 
 -- @Block
@@ -121,12 +125,14 @@ CREATE TABLE Exhibition_Artwork(
     Exhibition_Artwork_ID INT PRIMARY KEY NOT NULL,
     Display_Room VARCHAR(30),
     Date_Installed DATE,
-    Exhibition_ID INT,
-    Artwork_ID INT,
+    Exhibition_ID INT NOT NULL,
+    Artwork_ID INT NOT NULL,
     Created_By VARCHAR(30),
     Created_At DATE,
     Updated_By VARCHAR(30),
     Updated_AT DATE,
+
+    UNIQUE(exhibition_ID, Artwork_ID),
 
     CONSTRAINT fk_Exhibition_Artwork_Exhibition
     FOREIGN KEY (Exhibition_ID) REFERENCES Exhibition(Exhibition_ID),
@@ -143,14 +149,16 @@ CREATE TABLE Ticket(
     Visit_Date DATE NOT NULL,
     Last_Name VARCHAR(30),
     First_Name VARCHAR(30),
-    phone_number VARCHAR(10),
+    Phone_number VARCHAR(10),
     Email VARCHAR(50),
-    payment_method VARCHAR(30),
-    membership_ID INT NULL,
-    created_by VARCHAR(30),
-    created_at DATE,
-    updated_by VARCHAR(30),
-    updated_at DATE,
+    Payment_method VARCHAR(30),
+    Membership_ID INT NULL,
+    Created_by VARCHAR(30),
+    Created_at DATE,
+    Updated_by VARCHAR(30),
+    Updated_at DATE,
+
+    CHECK (Visit_Date >= Purchase_Date),
     
     CONSTRAINT fk_ticket_Membership
     FOREIGN KEY (Membership_ID) REFERENCES Membership(Membership_ID)
@@ -158,17 +166,17 @@ CREATE TABLE Ticket(
 
 -- @Block
 CREATE TABLE ticket_line(
-    ticket_line_ID INT PRIMARY KEY NOT NULL,
-    ticket_Type VARCHAR(30),
+    Ticket_line_ID INT PRIMARY KEY NOT NULL,
+    Ticket_Type VARCHAR(30),
     Quantity INT NOT NULL CHECK (Quantity > 0),
-    price_per_ticket DECIMAL(6,2) NOT NULL CHECK (price_per_ticket >= 0),
+    Price_per_ticket DECIMAL(6,2) NOT NULL CHECK (price_per_ticket >= 0),
     Ticket_ID INT NOT NULL,
-    total_sum_of_ticket DECIMAL(6,2) GENERATED ALWAYS AS (Quantity * price_per_ticket) STORED,
-    exhibition_ID INT NULL,
-    created_by VARCHAR(30),
-    created_at DATE,
-    updated_by VARCHAR(30),
-    updated_at DATE,
+    Total_sum_of_ticket DECIMAL(6,2) GENERATED ALWAYS AS (Quantity * price_per_ticket) STORED,
+    Exhibition_ID INT NULL,
+    Created_by VARCHAR(30),
+    Created_at DATE,
+    Updated_by VARCHAR(30),
+    Updated_at DATE,
     
     CONSTRAINT fk_ticket_line_ticket
     FOREIGN KEY (ticket_ID) REFERENCES ticket(ticket_ID),
@@ -203,11 +211,13 @@ CREATE TABLE event_registration(
     Registration_Date DATE NOT NULL,
     Event_ID INT NOT NULL,
     Membership_ID INT NOT NULL,
-    Ticket_ID INT,
+    Ticket_ID INT NOT NULL,
     Created_By VARCHAR(30),
     Created_At DATE,
     Updated_By VARCHAR(30),
     Updated_At DATE,
+
+    UNIQUE (Event_ID, Membership_ID),
     
     CONSTRAINT fk_Reg_Event
     FOREIGN KEY (Event_ID) REFERENCES Event(Event_ID),
@@ -217,6 +227,43 @@ CREATE TABLE event_registration(
     
     CONSTRAINT fk_Reg_Ticket
     FOREIGN KEY (Ticket_ID) REFERENCES Ticket(Ticket_ID)
+);
+
+--@Block
+
+CREATE TABLE Schedule(
+    Schedule_ID INT PRIMARY KEY NOT NULL,
+    Shift_Date DATE,
+    Start_Time TIME,
+    End_Time TIME,
+    Employee_ID INT NOT NULL,
+    Exhibition_ID INT NOT NULL,
+    Duty VARCHAR(20),
+    Created_By VARCHAR(30),
+    Created_At DATE,
+    Updated_By VARCHAR(30),
+    Updated_At DATE,
+
+    CHECK (End_Time > Start_Time),
+
+    CONSTRAINT fk_Schedule_Employee
+    FOREIGN KEY (Employee_ID) REFERENCES Employee(Employee_ID),
+
+    CONSTRAINT fk_Schedule_Exhibition
+    FOREIGN KEY (Exhibition_ID) REFERENCES Exhibition(Exhibition_ID)
+);
+
+CREATE TABLE Food_Sale(
+    Food_Sale_ID INT PRIMARY KEY NOT NULL,
+    Sale_Date DATE,
+    Employee_ID INT NOT NULL,
+    Created_By VARCHAR(30),
+    Created_At DATE,
+    Updated_By VARCHAR(30),
+    Updated_At DATE,
+
+    CONSTRAINT fk_Food_sale_Employee
+    FOREIGN KEY (Employee_ID) REFERENCES Employee(Employee_ID)
 );
 
 --@Block, this is for circular foreign keys after tables have been made
