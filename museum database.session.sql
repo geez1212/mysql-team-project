@@ -255,6 +255,40 @@ CREATE TABLE Schedule(
     FOREIGN KEY (Exhibition_ID) REFERENCES Exhibition(Exhibition_ID)
 );
 
+--@block
+CREATE TABLE Gift_Shop_Sale (
+    Gift_Shop_Sale_ID AUTO_INCREMENT PRIMARY KEY,
+    Sale_Date DATE NOT NULL,
+    Employee_ID INT NOT NULL,
+    Created_By VARCHAR(30),
+    Created_At DATE,
+    Updated_By VARCHAR(30),
+    Updated_At DATE NULL,
+    CONSTRAINT fk_Gift_Shop_Sale_EMPLOYEE FOREIGN KEY (Employee_ID) REFERENCES Employee (Employee_ID) ON DELETE RESTRICT
+);
+
+--@block
+CREATE TABLE Gift_Shop_Sale_Line (
+    Gift_Shop_Sale_Line_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Price_When_Item_is_Sold DECIMAL(10, 2) NOT NULL,
+    Quantity INT NOT NULL,
+    Total_Sum_For_Gift_Shop_Sale DECIMAL(10, 2) NOT NULL,
+    Gift_Shop_Sale_ID INT NOT NULL,
+    Gift_Shop_Item_ID INT NOT NULL,
+    Created_By VARCHAR(30),
+    Created_At DATE,
+    Updated_By VARCHAR(30) NULL,
+    Updated_At DATE NULL,
+    CONSTRAINT fk_Gift_Shop_Sale_Line_Sale FOREIGN KEY (Gift_Shop_Sale_ID) REFERENCES Gift_Shop_Sale (Gift_Shop_Sale_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Gift_Shop_Sale_Line_Item FOREIGN KEY (Gift_Shop_Item_ID) REFERENCES Gift_Shop_Item (Gift_Shop_Item) ON DELETE RESTRICT,
+    CONSTRAINT chk_Gift_Shop_Sale_Line_Qty CHECK (Quantity > 0),
+    CONSTRAINT chk_Gift_Shop_Sale_Line_Price CHECK (Price_When_Item_is_Sold >= 0),
+    CONSTRAINT chk_Gift_Shop_Sale_Line_Total CHECK (
+        Total_Sum_For_Gift_Shop_Sale = Quantity * Price_When_Item_is_Sold
+    )
+);
+
+--@block
 CREATE TABLE Food_Sale(
     Food_Sale_ID INT PRIMARY KEY NOT NULL,
     Sale_Date DATE,
@@ -268,6 +302,22 @@ CREATE TABLE Food_Sale(
     FOREIGN KEY (Employee_ID) REFERENCES Employee(Employee_ID)
 );
 
+--@block
+CREATE TABLE Food_Sale_Line (
+    Food_Sale_Line_ID INT PRIMARY KEY NOT NULL,
+    Price_When_Food_Was_Sold DECIMAL(10, 2) NOT NULL,
+    Quantity INT NOT NULL,
+    Food_Sale_ID INT NOT NULL,
+    Food_ID INT NOT NULL,
+    Created_By VARCHAR(30),
+    Created_At DATE,
+    Updated_By VARCHAR(30),
+    Updated_At DATE,
+    CHECK (Quantity > 0),
+    CHECK (Price_When_Food_Was_Sold >= 0),
+    CONSTRAINT fk_Food_Sale_Line_Sale FOREIGN KEY (Food_Sale_ID) References Food_Sale (Food_Sale_ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Food_Sale_Line_Food FOREIGN KEY REFERENCES Food (Food_ID) ON DELETE RESTRICT
+);
 --@Block, this is for circular foreign keys after tables have been made
 
 ALTER TABLE Department
